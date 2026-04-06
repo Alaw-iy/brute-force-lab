@@ -1,5 +1,4 @@
 Teste de Forca Bruta com Kali Linux e Medusa
-Objetivo
 
 Simulei ataques de forca bruta em um ambiente controlado.
 O foco foi entender como sistemas vulneraveis respondem a tentativas de acesso.
